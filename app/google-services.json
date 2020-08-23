@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "385886785017",
+    "firebase_url": "https://pickycopy.firebaseio.com",
+    "project_id": "pickycopy",
+    "storage_bucket": "pickycopy.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:385886785017:android:aee0d29d5a649ac5254128",
+        "android_client_info": {
+          "package_name": "com.example.pickycopy"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "385886785017-2gt2tdh9p0sav7of9a7janf9d07etqo1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCZIu6Fuz98CSlLdG9Rrr7rfP1frBPvBPU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "385886785017-2gt2tdh9p0sav7of9a7janf9d07etqo1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
