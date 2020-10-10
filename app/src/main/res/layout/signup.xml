@@ -117,13 +117,33 @@
             android:inputType="textPassword"
             android:textColor="@color/accent" />
 
-        <TextView
-            android:id="@+id/last"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/expandable"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Address"
-            android:textColor="@color/accent"
-            android:textSize="18sp" />
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/last"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Address"
+                android:textColor="@color/accent"
+                android:textSize="14sp" />
+
+            <EditText
+                android:id="@+id/address"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:ems="10"
+                android:inputType="textPersonName"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <Button
             android:id="@+id/button2"

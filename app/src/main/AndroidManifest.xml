@@ -4,6 +4,8 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.GET_TASKS" />
 
     <application
         android:allowBackup="true"
@@ -15,6 +17,7 @@
         <activity android:name=".About"></activity>
         <activity android:name=".CEditProfile" />
         <activity android:name=".CProfile" />
+        <activity android:name=".MessageListActivity"/>
 
         <service android:name=".MyFirebaseMessagingService">
             <intent-filter>

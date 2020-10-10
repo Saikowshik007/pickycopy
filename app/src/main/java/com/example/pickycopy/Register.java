@@ -15,6 +15,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
+
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.TaskExecutors;
@@ -39,13 +41,14 @@ import java.util.concurrent.TimeUnit;
 public class Register extends AppCompatActivity{
     Button register;
     CountryCodePicker countryCodePicker;
-    EditText namef, phonef, emailf, passwordf;
+    EditText namef, phonef, emailf, passwordf,addressf;
     Spinner typef;
     TextView login;
     FirebaseAuth fa;
     ProgressBar pb;
-    String userId, email, password, phone, name, type,token;
+    String userId, email, password, phone, name, type,token,address;
     FirebaseFirestore fs;
+    ConstraintLayout cl;
     String[] types = {"Please select","Student","Shop-keeper"};
     private String mVerificationId;
     public boolean validate(String name, String email, String password, String phone) {
@@ -84,11 +87,13 @@ public class Register extends AppCompatActivity{
         emailf = findViewById(R.id.editText4);
         phonef = findViewById(R.id.editText6);
         typef = findViewById(R.id.spinner);
+        addressf=findViewById(R.id.address);
         fa = FirebaseAuth.getInstance();
         pb = findViewById(R.id.progressBar2);
         passwordf = findViewById(R.id.editText5);
         register = findViewById(R.id.button2);
         fs = FirebaseFirestore.getInstance();
+        cl=findViewById(R.id.expandable);
         ArrayAdapter<String> typea = new ArrayAdapter<String>(Register.this, R.layout.support_simple_spinner_dropdown_item, types);
         typef.setAdapter(typea);
         typef.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -98,12 +103,15 @@ public class Register extends AppCompatActivity{
                 switch (position) {
                     case 0:
                         Toast.makeText(Register.this,"Please select type of user",Toast.LENGTH_LONG).show();
+                        cl.setVisibility(View.GONE);
                         break;
                     case 1:
                         type = "student";
+                        cl.setVisibility(View.GONE);
                         break;
                     case 2:
                         type = "owner";
+                        cl.setVisibility(View.VISIBLE);
                         break;
 
                 }
@@ -127,6 +135,7 @@ public class Register extends AppCompatActivity{
                 email = emailf.getText().toString().trim();
                 password = passwordf.getText().toString().trim();
                 phone = "+"+countryCodePicker.getSelectedCountryCode() + phonef.getText().toString().trim();
+                address=addressf.getText().toString().trim();
                 v.getBackground().setColorFilter(0xe0f47521, PorterDuff.Mode.SRC_ATOP);
                 v.invalidate();
 
@@ -194,6 +203,7 @@ public class Register extends AppCompatActivity{
             public void onComplete(@NonNull Task<AuthResult> task) {
 
                 if (task.isSuccessful()) {
+                    if(type.contains("student")){
                     pb.setVisibility(View.INVISIBLE);
                     userId = fa.getCurrentUser().getUid();
                     Map<String, Object> user1 = new HashMap<>();
@@ -203,6 +213,7 @@ public class Register extends AppCompatActivity{
                     user1.put("type",type);
                     user1.put("userId",userId);
                     user1.put("token",token);
+                    user1.put("address","null");
                     Toast.makeText(Register.this, "Authentication passed.", Toast.LENGTH_SHORT).show();
                     DocumentReference cf = fs.collection("Users").document(fa.getCurrentUser().getUid());
                     cf.set(user1);
@@ -211,7 +222,28 @@ public class Register extends AppCompatActivity{
                     fa.getCurrentUser().updateProfile(profileUpdates);
                     finish();
 
-                } else {
+                }
+                    else{
+                        pb.setVisibility(View.INVISIBLE);
+                        userId = fa.getCurrentUser().getUid();
+                        Map<String, Object> user1 = new HashMap<>();
+                        user1.put("name",name);
+                        user1.put("email",email);
+                        user1.put("phone",phone);
+                        user1.put("type",type);
+                        user1.put("userId",userId);
+                        user1.put("token",token);
+                        user1.put("address",address);
+                        Toast.makeText(Register.this, "Authentication passed.", Toast.LENGTH_SHORT).show();
+                        DocumentReference cf = fs.collection("Users").document(fa.getCurrentUser().getUid());
+                        cf.set(user1);
+                        UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                                .setDisplayName(type).build();
+                        fa.getCurrentUser().updateProfile(profileUpdates);
+                        finish();
+
+                    }
+                }else {
 
                     Toast.makeText(Register.this, "Authentication failed."+task.getException(), Toast.LENGTH_LONG).show();
                 }

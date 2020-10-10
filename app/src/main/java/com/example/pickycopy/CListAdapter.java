@@ -2,17 +2,22 @@ package com.example.pickycopy;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Parcelable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Filter;
 import android.widget.Filterable;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.tasks.Task;
@@ -30,10 +35,8 @@ public class CListAdapter extends RecyclerView.Adapter implements Filterable {
     ImmutableList<CUser> complete;
     private Context contex;
     Dialog mDialouge;
-    FloatingActionButton upload, message,rate;
-    TextView name;
-    String token;
-    int pos;
+    ImageButton upload, message, rate;
+    String token, userId;
 
     public CListAdapter(Context context, List<CUser> messageList) {
         userList = messageList;
@@ -67,35 +70,33 @@ public class CListAdapter extends RecyclerView.Adapter implements Filterable {
         return new userHolder(view);
     }
 
-    // Passes the message object to a ViewHolder so that the contents can be bound to UI.
     @Override
     public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
-
         final CUser details = userList.get(position);
+        upload=holder.itemView.findViewById(R.id.imageButton2);
+        message=holder.itemView.findViewById(R.id.imageButton4);
         ((userHolder) holder).bind(details);
         Toast.makeText(contex, "Unable to create user", Toast.LENGTH_SHORT);
-        mDialouge = new Dialog(contex);
-        mDialouge.setContentView(R.layout.fragment);
-        mDialouge.getWindow().getAttributes().windowAnimations=R.anim.zoomout;
-        name = mDialouge.findViewById(R.id.textView11);
-        upload = mDialouge.findViewById(R.id.imageButton2);
-        message = mDialouge.findViewById(R.id.imageButton4);
+        boolean isExpanded = userList.get(position).isExpanded();
+        ((userHolder) holder).cl.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
         Toast.makeText(contex, "Unable to create user", Toast.LENGTH_SHORT);
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                name.setText(userList.get(holder.getAdapterPosition()).getName());
-                token=userList.get(holder.getAdapterPosition()).token();
-                mDialouge.show();
+                token = userList.get(holder.getAdapterPosition()).token();
+                userId = userList.get(holder.getAdapterPosition()).getUserId();
+                Log.d("Id", "" + userId);
+                changeStateOfItemsInLayout(holder.getAdapterPosition());
+                notifyItemChanged(holder.getAdapterPosition());
+
             }
         });
         upload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mDialouge.hide();
                 JSONArray regArray = new JSONArray();
                 regArray.put(" " + token);
-                        ((CMainActivity) contex).uploader(regArray);
+                ((CMainActivity) contex).uploader(regArray);
 
 
             }
@@ -103,6 +104,8 @@ public class CListAdapter extends RecyclerView.Adapter implements Filterable {
         message.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                contex.startActivity(new Intent(contex, MessageListActivity.class).putExtra("userId", userId).putExtra("user", token));
 
             }
         });
@@ -145,9 +148,12 @@ public class CListAdapter extends RecyclerView.Adapter implements Filterable {
     public class userHolder extends RecyclerView.ViewHolder {
         TextView name;
         ImageView sample;
+        ConstraintLayout cl;
+
         public userHolder(View itemView) {
             super(itemView);
             name = itemView.findViewById(R.id.user_name);
+            cl = itemView.findViewById(R.id.expand);
         }
 
         void bind(CUser message) {
@@ -160,5 +166,15 @@ public class CListAdapter extends RecyclerView.Adapter implements Filterable {
         userList.clear();
     }
 
+    private void changeStateOfItemsInLayout(int p) {
+        for (int x = 0; x < userList.size(); x++) {
+            if (x == p) {
+                userList.get(x).setExpanded(!userList.get(x).isExpanded());
+                continue;
+            }
+            userList.get(x).setExpanded(false);
+            notifyItemChanged(x);
+        }
 
+    }
 }

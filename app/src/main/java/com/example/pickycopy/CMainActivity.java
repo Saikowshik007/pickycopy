@@ -86,6 +86,7 @@ public class CMainActivity  extends AppCompatActivity implements NavigationView.
     NavigationView navigationView;
     JSONArray regArray = new JSONArray();
     String emailf, userid;
+    ArrayList<String> messages;
     public static final MediaType JSON
             = MediaType.parse("application/json; charset=utf-8");
     final String TAG = "NOTIFICATION TAG";
@@ -98,23 +99,23 @@ public class CMainActivity  extends AppCompatActivity implements NavigationView.
     private StorageReference mStorageRef;
     @Override
     protected void onStart() {
-        fa = FirebaseAuth.getInstance();
-        fs = FirebaseFirestore.getInstance();
-        emailf = fa.getCurrentUser().getEmail();
-        userid = fa.getCurrentUser().getUid();
-        getdbData();
-        LocalBroadcastManager.getInstance(this).registerReceiver((mMessageReceiver),
-                new IntentFilter("MyData")
-        );
+
         super.onStart();
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.cmainactivity);
+        fa = FirebaseAuth.getInstance();
+        fs = FirebaseFirestore.getInstance();
+        emailf = fa.getCurrentUser().getEmail();
+        userid = fa.getCurrentUser().getUid();
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1001);
         }
+        LocalBroadcastManager.getInstance(this).registerReceiver((mMessageReceiver),
+                new IntentFilter("MyData")
+        );
         userRecycler = findViewById(R.id.user_recycle);
         userRecycler.setLayoutManager(new LinearLayoutManager(this));
         upload = findViewById(R.id.button);
@@ -132,6 +133,8 @@ public class CMainActivity  extends AppCompatActivity implements NavigationView.
         userRecycler.setAdapter(listAdapter);
         ((LinearLayoutManager) userRecycler.getLayoutManager()).setStackFromEnd(true);
         getToken();
+        messages=new ArrayList<>();
+        getdbData();
     }
 
     public void pick() {
@@ -185,7 +188,7 @@ public class CMainActivity  extends AppCompatActivity implements NavigationView.
                             Toast.makeText(CMainActivity.this, "Upload success!!", Toast.LENGTH_SHORT).show();
                             String downloadUrl = taskSnapshot.getUploadSessionUri().toString();
                             //Toast.makeText(CMainActivity.this, downloadUrl, Toast.LENGTH_SHORT).show();
-                            sendMessage(regArray,"File uploaded!!","hi",downloadUrl);
+                            sendMessage(regArray,"New message!","hi","Download link:",userid);
                             pb.setVisibility(View.INVISIBLE);
 
                         }
@@ -206,7 +209,7 @@ public class CMainActivity  extends AppCompatActivity implements NavigationView.
 
     public void getdbData() {
         list.clear();
-        fs.collection("Users").whereEqualTo("type", "student").addSnapshotListener(new EventListener<QuerySnapshot>() {
+        fs.collection("Users").whereEqualTo("type", "owner").addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
                 for (DocumentChange doc : queryDocumentSnapshots.getDocumentChanges()) {
@@ -216,8 +219,9 @@ public class CMainActivity  extends AppCompatActivity implements NavigationView.
                         String email = doc.getDocument().getString("email");
                         String userId = doc.getDocument().getString("userId");
                         String token = " "+doc.getDocument().getString("token");
+                        String address=doc.getDocument().getString("address");
                         if(!doc.getDocument().getId().contains(fa.getCurrentUser().getUid())){
-                        list.add(new CUser(name, phone, email, userId,token));
+                        list.add(new CUser(name, phone, email, userId,token,address));
                         userRecycler.scrollToPosition(0);}
                     }
                 }
@@ -310,7 +314,6 @@ public class CMainActivity  extends AppCompatActivity implements NavigationView.
 
                         token = task.getResult().getToken();
 
-                        // Log and toast
                         String msg = getString(R.string.msg_token_fmt, token);
                         Log.d(TAG, msg);
                         //Toast.makeText(CMainActivity.this, msg, Toast.LENGTH_SHORT).show();
@@ -319,7 +322,7 @@ public class CMainActivity  extends AppCompatActivity implements NavigationView.
                 });
     }
 
-    public void sendMessage(final JSONArray recipients, final String title, final String body, final String message) {
+    public void sendMessage(final JSONArray recipients, final String title, final String body, final String message,final String sendername) {
         new AsyncTask<String, String, String>() {
             @Override
             protected String doInBackground(String... params) {
@@ -331,6 +334,11 @@ public class CMainActivity  extends AppCompatActivity implements NavigationView.
 
                     JSONObject data = new JSONObject();
                     data.put("message", message);
+                    data.put("userId",userid);
+                    data.put("downloadUrl",downloadUrl);
+                    data.put("senderName",sendername);
+                    data.put("sentTime", Calendar.getInstance().getTime());
+                    data.put("recieverId",fa.getCurrentUser().getUid());
                     root.put("notification", notification);
                     root.put("data", data);
                     root.put("registration_ids", recipients);
@@ -382,8 +390,11 @@ public class CMainActivity  extends AppCompatActivity implements NavigationView.
         @Override
         public void onReceive(Context context, Intent intent) {
             downloadUrl=intent.getExtras().getString("message");
+            messages.add(downloadUrl);
+            //Toast.makeText(CMainActivity.this,messages.get(0),Toast.LENGTH_SHORT).show();
+            listAdapter.notifyDataSetChanged();
 
-            Toast.makeText(CMainActivity.this,downloadUrl,Toast.LENGTH_SHORT).show();
+
 
         }
     };
